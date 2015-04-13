@@ -4,6 +4,8 @@ require 'yaml'
 module Lita
   module Handlers
     class GithubTeamReview < Handler
+      config :username, required: true
+      config :password, required: true
 
       route(/^review\s+(.+)/, :review, command: true, help: {
         "review GITHUB_TEAM" => "Responds with all issues that need review for a github team."
@@ -18,23 +20,29 @@ module Lita
           response.reply "Please pass a valid github team as a string."
         end
 
-        begin
-          config = YAML.load_file("#{team_arg}-review-config.yml")
-          @client = Octokit::Client.new(:login => config["login"], :password => config["password"])
-        rescue Errno::ENOENT => ex
-          response.reply "The team you passed (#{team_arg}) is yet configured for the review command."
-          response.reply "Valid teams currently are:"
-          Dir["./*.yml"].each do |team_yml_file|
-            # strip ./ and -review-config.yml
-            response.reply team_yml_file[2..-19]
+        @client = Octokit::Client.new(:login => config.username, :password => config.password)
+
+        valid_teams = []
+        team_found = false
+        @client.organization_teams("chef").each do |team|
+          team_found = true if team[:slug] == team_arg
+          valid_teams << team[:slug]
+        end
+
+        unless team_found
+          response.reply "The team you passed (#{team_arg}) is not a valid github Chef team."
+          response.reply "Valid responses are:"
+          valid_teams.each do |team_slug|
+            response.reply team_slug
           end
           return nil
         end
 
-        issues = @client.list_issues
+        issues = @client.search_issues("team:chef/#{team_arg} is:open is:pr")[:items]
         if issues.length == 0
-          response.reply "There are currently no issues or pull requests to review for team #{team_arg}!"
-          response.reply "To mark an issue or pull request as needing review, assign it to the github user #{team_arg}-review."
+          response.reply "There are currently no pull requests to review for team #{team_arg}!"
+          response.reply "To mark a pull request as needing review, mention it in the description on Github."
+          response.reply "For example: @chef/<your_chef_org_team_name>"
         else
           response.reply "There are #{issues.length} issues and pull requests currently in need of review for team #{team_arg}.\n"
         end
