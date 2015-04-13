@@ -59,6 +59,8 @@ Upon doing the above, you can now call
 
 to list all pull requests needing review.
 
+Contact `tyler <at> chef <dot> io` if you need any help :)
+
 Happy reviewing!
 
 ### TODO
