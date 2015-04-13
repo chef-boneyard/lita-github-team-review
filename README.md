@@ -46,10 +46,11 @@ See example.yml for format.
 ### Setting Up A New Team
 
 1. Create a new github user named `<team_name>-review`.
-2. Have someone with privileges invite that user to the Chef organization with read access (if you want to be able to find private repos needing review).
-3. In the deploy cookbook, deploy `<team_name>-review-config.yml` to the root of the installed repo with the proper values (see example.yml).
-4. Deploy the cookbook.
-5. Assign `<team_name>-review` to github issues and pull requests that need review from your team.
+2. Put that user's credentials in lastpass for posterity.
+3. Have someone with privileges invite that user to the Chef organization with read access (if you want to be able to find private repos needing review).
+4. In the deploy cookbook, deploy `<team_name>-review-config.yml` to the root of the installed repo with the proper values (see example.yml).
+5. Deploy the cookbook.
+6. Assign `<team_name>-review` to github issues and pull requests that need review from your team.
 
 Upon doing the above, you can now call
 
