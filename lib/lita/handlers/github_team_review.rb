@@ -20,15 +20,13 @@ module Lita
           response.reply "Please pass a valid github team as a string."
         end
 
-        @client = Octokit::Client.new(:login => config.username, :password => config.password)
-
         assume_chef_team = !team_arg.include?("/")
 
         # if we are assuming a Chef team was passed, check if team is valid
         if assume_chef_team
           valid_teams = []
           team_found = false
-          @client.organization_teams("chef").each do |team|
+          github_client.organization_teams("chef").each do |team|
             team_found = true if team[:slug] == team_arg
             valid_teams << team[:slug]
           end
@@ -47,7 +45,7 @@ module Lita
         end
 
         begin
-          issues = @client.search_issues("team:#{team_string} is:open is:pr")[:items]
+          issues = github_client.search_issues("team:#{team_string} is:open is:pr")[:items]
         rescue Octokit::UnprocessableEntity => e
           # parse the error response from octokit
           response.reply e.message.match(/\bmessage:\s+\K.*$/)[0]
@@ -74,6 +72,12 @@ module Lita
           end
         end
       end
+    end
+
+    private
+
+    def github_client
+      @github_client ||= Octokit::Client.new(:login => config.username, :password => config.password)
     end
 
     Lita.register_handler(GithubTeamReview)
