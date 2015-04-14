@@ -9,10 +9,8 @@ module Lita
       config :default_org, required: true
 
       route(/^review\s+(.+)/, :review, command: true, help: {
-        "review <org>/<team>" => "Responds with all issues that need review for a GitHub team. If <org> is omitted we assume the team is part of the #{config.default_org} GitHub organization."
+        "review <org>/<team>" => "Responds with all issues that need review for a GitHub team. If <org> is omitted, we assume the team is part of a default GitHub organization (see bot configuration)."
       })
-
-      attr_reader :client
 
       def review(response)
         team_arg = response.args[0]
@@ -24,7 +22,10 @@ module Lita
         if team_arg.include?("/")
           team_string = team_arg
         else
-          teams_in_default_org = github_client.organization_teams(config.default_org)
+          teams_in_default_org = []
+          github_client.organization_teams(config.default_org).each do |team|
+            teams_in_default_org << team[:slug]
+          end
 
           unless teams_in_default_org.include?(team_arg)
             response.reply "The team you passed (#{team_arg}) is not a valid team in the #{config.default_org} org."
@@ -62,12 +63,12 @@ module Lita
           end
         end
       end
-    end
 
-    private
+      private
 
-    def github_client
-      @github_client ||= Octokit::Client.new(:login => config.username, :password => config.password)
+      def github_client
+        @github_client ||= Octokit::Client.new(:login => config.username, :password => config.password)
+      end
     end
 
     Lita.register_handler(GithubTeamReview)
