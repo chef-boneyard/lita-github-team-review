@@ -6,8 +6,9 @@ issues that are in need of review for a team.
 ## Configuration
 
 ```
-config.handlers.github_team_review.username #username of a valid github user
-config.handlers.github_team_review.password #password for that user
+config.handlers.github_team_review.username    #username of a valid github user
+config.handlers.github_team_review.password    #password for that user
+config.handlers.github_team_review.default_org #default GitHub org teams will be looked up in
 ```
 
 ## Usage
@@ -15,12 +16,14 @@ config.handlers.github_team_review.password #password for that user
 ### In Hipchat
 
 ```
-botname review <team>
+botname review <org>/<team>
 ```
+
+If `<org>` is omitted we assume the team is in the configured default org.
 
 ### In Github
 
-To use, simply mention the team you want to review your pull request in github. You can do this via `@chef/<your_chef_team_name>`. After that, they will show up in the bot.
+To use, simply mention the team you want to review your pull request in github. You can do this via `@<github_org>/<your_team_name>`. After that, they will show up in the bot.
 
 Contact `tyler <at> chef <dot> io` if you need any help :)
 
