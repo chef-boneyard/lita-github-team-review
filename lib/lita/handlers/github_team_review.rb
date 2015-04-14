@@ -1,5 +1,5 @@
 require 'octokit'
-require 'yaml'
+require 'date'
 
 module Lita
   module Handlers
@@ -22,23 +22,38 @@ module Lita
 
         @client = Octokit::Client.new(:login => config.username, :password => config.password)
 
-        valid_teams = []
-        team_found = false
-        @client.organization_teams("chef").each do |team|
-          team_found = true if team[:slug] == team_arg
-          valid_teams << team[:slug]
+        assume_chef_team = !team_arg.include?("/")
+
+        # if we are assuming a Chef team was passed, check if team is valid
+        if assume_chef_team
+          valid_teams = []
+          team_found = false
+          @client.organization_teams("chef").each do |team|
+            team_found = true if team[:slug] == team_arg
+            valid_teams << team[:slug]
+          end
+
+          unless team_found
+            response.reply "The team you passed (#{team_arg}) is not a valid github Chef team."
+            response.reply "Valid responses are:"
+            valid_teams.each do |team_slug|
+              response.reply team_slug
+            end
+            return nil
+          end
+          team_string = "chef/#{team_arg}"
+        else
+          team_string = team_arg
         end
 
-        unless team_found
-          response.reply "The team you passed (#{team_arg}) is not a valid github Chef team."
-          response.reply "Valid responses are:"
-          valid_teams.each do |team_slug|
-            response.reply team_slug
-          end
+        begin
+          issues = @client.search_issues("team:#{team_string} is:open is:pr")[:items]
+        rescue Octokit::UnprocessableEntity => e
+          # parse the error response from octokit
+          response.reply e.message.match(/\bmessage:\s+\K.*$/)[0]
           return nil
         end
 
-        issues = @client.search_issues("team:chef/#{team_arg} is:open is:pr")[:items]
         if issues.length == 0
           response.reply "There are currently no pull requests to review for team #{team_arg}!"
           response.reply "To mark a pull request as needing review, mention it in the description on Github."
@@ -49,8 +64,14 @@ module Lita
 
         issues.each do |issue|
           response.reply issue[:title]
-          response.reply "Author: #{issue[:user][:login]}"
-          response.reply "Url:    #{issue[:html_url]}\n"
+          response.reply "Author:  #{issue[:user][:login]}"
+          response.reply "Url:     #{issue[:html_url]}"
+          days = Time.now.to_date.mjd - issue[:created_at].to_date.mjd
+          if days > 0
+            response.reply "Created #{days} days ago\n"
+          else
+            response.reply "Created less than one day ago\n"
+          end
         end
       end
     end
