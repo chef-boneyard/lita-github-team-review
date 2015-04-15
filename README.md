@@ -6,9 +6,8 @@ issues that are in need of review for a team.
 ## Configuration
 
 ```
-config.handlers.github_team_review.username    #username of a valid github user
-config.handlers.github_team_review.password    #password for that user
-config.handlers.github_team_review.default_org #default GitHub org teams will be looked up in
+config.handlers.github_team_review.username #username of a valid github user
+config.handlers.github_team_review.password #password for that user
 ```
 
 ## Usage
@@ -18,8 +17,6 @@ config.handlers.github_team_review.default_org #default GitHub org teams will be
 ```
 botname review <org>/<team>
 ```
-
-If `<org>` is omitted we assume the team is in the configured default org.
 
 ### In Github
 
