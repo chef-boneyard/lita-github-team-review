@@ -44,7 +44,7 @@ module Lita
           else
             message << "Created: Less than one day ago\n"
           end
-          message << "Url: #{issue[:html_url]}\n"
+          message << "Url: #{issue[:html_url]}\n\n"
         end
         response.reply(render_template("multi_line", lines: message))
       end
